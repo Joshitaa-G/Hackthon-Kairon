@@ -52,9 +52,31 @@ export async function buildSummary(type, stories) {
   }
 }
 
-export function pickQuotes(stories, quoteIds) {
+// Quotes: the LLM's picks first, then the closest stories. One quote per author (shared stories are all
+// "anonymous", so they don't count as one author), and if any regret or mixed story has a quote, at least one
+// of them is shown so the voices aren't all one-sided.
+export function pickQuotes(stories, quoteIds, max = 5) {
   const byId = new Map(stories.map((s) => [s.id, s]));
-  let picked = quoteIds.map((id) => byId.get(id)).filter((s) => s?.quote);
-  if (picked.length < 3) picked = [...picked, ...stories.filter((s) => s.quote && !picked.includes(s))].slice(0, 4);
+  const preferred = quoteIds.map((id) => byId.get(id)).filter((s) => s?.quote);
+  const pool = [...new Set([...preferred, ...stories.filter((s) => s.quote)])];
+  const target = Math.min(max, Math.max(3, preferred.length));
+  const isDoubtful = (s) => s.kind !== 'advice' && (s.regret === 'yes' || s.regret === 'mixed');
+
+  const picked = [];
+  const authors = new Set();
+  const fresh = (s) => !picked.includes(s) && (s.author === 'anonymous' || !authors.has(s.author));
+  const take = (s) => { picked.push(s); authors.add(s.author); };
+  for (const s of pool) if (picked.length < target && fresh(s)) take(s);
+
+  if (!picked.some(isDoubtful)) {
+    const doubtful = pool.find((s) => isDoubtful(s) && fresh(s));
+    if (doubtful) {
+      if (picked.length >= target) { // make room by dropping the last no-regret outcome (advice voices stay)
+        const i = picked.findLastIndex((s) => s.kind !== 'advice' && s.regret === 'no');
+        if (i >= 0) { authors.delete(picked[i].author); picked.splice(i, 1); }
+      }
+      if (picked.length < max) take(doubtful);
+    }
+  }
   return picked.map((s) => ({ id: s.id, text: s.quote, author: s.author, source_url: s.source_url, regret: s.regret, kind: s.kind ?? 'outcome', site: s.site }));
 }
