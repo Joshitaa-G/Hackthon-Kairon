@@ -11,10 +11,40 @@ const EXAMPLES = [
 ];
 const REGRET_LABEL = { no: 'No regret', mixed: 'Mixed', yes: 'Regrets it' };
 
+// ---- Saved collections: a personal reading list of experiences, kept in this browser only ----
+const COLL_KEY = 'kairon.collections';
+const storyIndex = new Map(); // every experience shown on the page, by id, so its 🔖 button can save it
+const SNAP_FIELDS = ['id', 'decision_type', 'label', 'regret', 'situation', 'choice', 'outcome', 'main_reason', 'advice', 'years_later', 'age_at_decision', 'author', 'source_url', 'site', 'source'];
+let typeLabels = {}; // decision type -> label, from /api/health
+let collections = readCollections();
+function readCollections() {
+  try { const c = JSON.parse(localStorage.getItem(COLL_KEY)); return Array.isArray(c?.collections) ? c.collections : []; } catch { return []; }
+}
+function writeCollections() {
+  try { localStorage.setItem(COLL_KEY, JSON.stringify({ collections })); } catch { /* private mode: lasts for this visit */ }
+}
+const isSaved = (id) => collections.some((c) => c.items.some((s) => s.id === id));
+function addCollection(name) {
+  const c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name.trim().slice(0, 60) || 'Reading list', items: [] };
+  collections.push(c);
+  writeCollections();
+  return c;
+}
+function setInCollection(cid, story, on) {
+  const c = collections.find((x) => x.id === cid);
+  if (!c) return;
+  c.items = c.items.filter((s) => s.id !== story.id);
+  if (on) c.items.unshift(Object.fromEntries(SNAP_FIELDS.map((k) => [k, story[k] ?? (k === 'label' ? typeLabels[story.decision_type] ?? null : null)])));
+  writeCollections();
+}
+const refreshSaveButtons = () => document.querySelectorAll('.savebtn').forEach((b) => b.classList.toggle('on', isSaved(b.dataset.save)));
+
 function experienceCard(e) {
   const when = [e.age_at_decision != null && `age ${e.age_at_decision} at the time`, e.years_later != null && `${e.years_later} year${e.years_later === 1 ? '' : 's'} later`].filter(Boolean).join(' · ');
-  return `<article class="exp ${esc(e.regret)}">
-    <div class="exp-head">${e.label ? `<span class="tag">${esc(e.label)}</span>` : ''}<span class="badge ${esc(e.regret)}">${REGRET_LABEL[e.regret] ?? 'Mixed'}</span>${when ? `<span class="muted small">${esc(when)}</span>` : ''}</div>
+  storyIndex.set(e.id, e);
+  return `<article class="exp ${esc(e.regret)}" id="exp-${esc(e.id)}">
+    <div class="exp-head">${e.label ? `<span class="tag">${esc(e.label)}</span>` : ''}<span class="badge ${esc(e.regret)}">${REGRET_LABEL[e.regret] ?? 'Mixed'}</span>${when ? `<span class="muted small">${esc(when)}</span>` : ''}
+      <button type="button" class="savebtn${isSaved(e.id) ? ' on' : ''}" data-save="${esc(e.id)}" aria-label="Save to a collection" title="Save to a collection">🔖</button></div>
     <dl>
       <dt>Where they were</dt><dd>${esc(e.situation)}</dd>
       <dt>What they decided</dt><dd>${esc(e.choice)}</dd>
@@ -37,10 +67,47 @@ const experiencesSection = (list) => !list.length ? '' : `
     <button type="button" class="more navbtn"></button>
   </div>`;
 
+// ---- Patterns: recurring themes across the stories, each linked to the people it comes from ----
+const THEME_TITLES = { common: 'What people commonly experienced', helped: 'What helped them', wish_known: "What people wish they'd known", differed: 'Where experiences differed' };
+const srcChip = (id, s, name) => (!s ? '' : `<button type="button" class="src ${s.kind === 'advice' ? 'advice' : esc(s.regret)}" data-src="${esc(id)}" data-url="${esc(s.source_url ?? '')}" title="Show this story">${esc(name)}</button>`);
+// One chip per story; several stories by the same person read "WoJ", "WoJ · 2", ...
+function srcChips(ids, src) {
+  const seen = {};
+  return ids.filter((id) => src[id]).map((id) => {
+    const a = src[id].author;
+    seen[a] = (seen[a] ?? 0) + 1;
+    return srcChip(id, src[id], seen[a] > 1 ? `${a} · ${seen[a]}` : a);
+  }).join('');
+}
+function themesSection(r) {
+  if (!r.themes) return '';
+  const src = r.theme_sources ?? {};
+  return `<div class="card themes"><h3>Patterns across these experiences</h3>
+    <p class="muted small">Recurring themes the AI found across the stories below. Tap a name to see the story behind it.</p>
+    ${Object.entries(THEME_TITLES).map(([g, title]) => (r.themes[g]?.length ? `<div class="theme-group"><h4>${title}</h4><ul>${r.themes[g].map((t) =>
+      `<li>${esc(t.text)}<div class="srcs"><span class="muted small">From</span>${srcChips(t.ids, src)}</div></li>`).join('')}</ul></div>` : '')).join('')}
+  </div>`;
+}
+// Tap a source name: jump to that experience in the list, or open the original post (advice posts aren't in the list).
+function openSource(btn) {
+  const box = $('exps');
+  if (box?._focus?.(btn.dataset.src)) return;
+  if (btn.dataset.url) window.open(btn.dataset.url, '_blank', 'noopener');
+}
+
 function mountExperiences(list) {
   const box = $('exps');
   if (!box) return;
   let filter = 'all', expanded = false;
+  box._focus = (id) => {
+    if (!list.some((e) => e.id === id)) return false;
+    filter = 'all'; expanded = true; draw();
+    const el = document.getElementById(`exp-${id}`);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 1800);
+    return true;
+  };
   const draw = () => {
     const shown = list.filter((e) => filter === 'all' || e.regret === filter);
     box.querySelector('.exp-list').innerHTML = shown.slice(0, expanded ? shown.length : 5).map(experienceCard).join('');
@@ -82,6 +149,7 @@ function renderReport(r) {
     <div class="card hero"><span class="tag">${esc(r.label)}</span>
       <h2>Estimated from ${n} real stor${n === 1 ? 'y' : 'ies'}</h2>${a ? `<p class="muted small">plus ${a} advice post${a === 1 ? '' : 's'} from people with experience (not counted in the regret split)</p>` : ''}${split}
       ${r.ai_summary ? '' : '<p class="muted small">AI summary off — showing excerpts from the closest stories.</p>'}</div>
+    ${themesSection(r)}
     ${experiencesSection(r.experiences ?? [])}
     <div class="grid">
       <div class="card"><h3>Top reasons</h3>${list(r.top_reasons)}</div>
@@ -297,6 +365,7 @@ $('clearKey').onclick = () => saveSettings({ geminiApiKey: '' });
 
 function loadStatus() { return fetch('/api/health').then((r) => r.json()).then((h) => {
   if ($('province').options.length === 1) for (const p of h.provinces) $('province').append(new Option(p, p));
+  typeLabels = h.types;
   if ($('s_type').options.length === 0) for (const [id, label] of Object.entries(h.types)) { $('s_type').append(new Option(label, id)); $('btype').append(new Option(label, id)); }
   const s = $('status');
   s.textContent = h.ok ? `${h.stories} stories · local embeddings · ${h.gemini ? 'Gemini on' : 'add Gemini key in ⚙️ (optional)'}` : 'run: npm run ingest';
@@ -378,3 +447,70 @@ function setTab(id) { document.querySelectorAll('.tabbar button').forEach((b) =>
 document.querySelectorAll('.tabbar button').forEach((b) => (b.onclick = () => {
   if (b.dataset.tab === 'ask') { setTab('ask'); window.scrollTo({ top: 0, behavior: 'smooth' }); $('q').focus(); } else $(b.dataset.tab).click();
 }));
+
+// ---- Save dialog: tick the collections a story belongs in, or start a new one ----
+let saving = null;
+function openSaveTo(story) {
+  saving = story;
+  if (!collections.length) addCollection('Reading list');
+  drawCollList();
+  $('newColl').value = '';
+  $('saveTo').showModal();
+}
+function drawCollList() {
+  $('collList').innerHTML = collections.map((c) => `<label class="check"><input type="checkbox" value="${esc(c.id)}"${c.items.some((s) => s.id === saving.id) ? ' checked' : ''}> ${esc(c.name)} <span class="muted small">· ${c.items.length}</span></label>`).join('');
+}
+$('collList').onchange = (e) => { setInCollection(e.target.value, saving, e.target.checked); drawCollList(); refreshSaveButtons(); };
+$('addColl').onclick = () => {
+  const name = $('newColl').value.trim();
+  if (!name) { $('newColl').focus(); return; }
+  setInCollection(addCollection(name).id, saving, true);
+  $('newColl').value = '';
+  drawCollList();
+  refreshSaveButtons();
+};
+$('newColl').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); $('addColl').click(); } };
+const syncSavedPage = () => { if ($('out').querySelector('.saved')) showSaved(savedView); };
+$('saveToForm').addEventListener('submit', (e) => { e.preventDefault(); $('saveTo').close(); syncSavedPage(); });
+$('saveTo').addEventListener('close', syncSavedPage); // also when closed with Esc
+
+// 🔖 buttons and theme source names live inside re-rendered HTML, so one listener handles them all.
+document.addEventListener('click', (e) => {
+  const save = e.target.closest('.savebtn');
+  if (save) { const s = storyIndex.get(save.dataset.save); if (s) openSaveTo(s); return; }
+  const src = e.target.closest('.src');
+  if (src) openSource(src);
+});
+
+// ---- Saved page: your collections and the experiences in each ----
+let savedView = null;
+function showSaved(cid) {
+  showNote('');
+  setTab('savedBtn');
+  const c = collections.find((x) => x.id === cid) ?? collections[0];
+  savedView = c?.id ?? null;
+  $('out').innerHTML = `
+    <div class="card hero saved"><span class="tag">🔖 Saved</span>
+      <h2>Your collections</h2>
+      <p class="muted small">A reading list of experiences, saved on this device only. Tap 🔖 on any experience to add it.</p>
+      <div class="gens">${collections.map((x) => `<button type="button" data-c="${esc(x.id)}" class="${x.id === savedView ? 'on' : ''}">${esc(x.name)} · ${x.items.length}</button>`).join('')}</div>
+      <div class="newcoll"><input id="pageNewColl" maxlength="60" placeholder="New collection, e.g. Deciding My Future" aria-label="New collection name"><button type="button" id="pageAddColl" class="navbtn">Create</button></div>
+    </div>
+    ${c ? `<div class="card">
+      <div class="collhead"><h3>${esc(c.name)}</h3><span class="grow"></span><button type="button" class="linkbtn" id="renColl">Rename</button><button type="button" class="linkbtn" id="delColl">Delete</button></div>
+      <div id="renBox" class="newcoll" hidden><input id="renInput" maxlength="60" value="${esc(c.name)}" aria-label="Collection name"><button type="button" class="navbtn" id="renSave">Save name</button></div>
+      <div id="delConfirm" class="qnote safety" hidden>Delete “${esc(c.name)}” and the ${c.items.length} stor${c.items.length === 1 ? 'y' : 'ies'} saved in it? <button type="button" class="navbtn" id="delYes">Delete</button> <button type="button" class="navbtn" id="delNo">Keep it</button></div>
+      <div class="exp-list">${c.items.map(experienceCard).join('') || '<p class="muted">Nothing here yet. Tap 🔖 on an experience in a report or your For you feed.</p>'}</div>
+    </div>` : ''}`;
+  $('out').querySelectorAll('.saved .gens button').forEach((b) => (b.onclick = () => showSaved(b.dataset.c)));
+  $('pageAddColl').onclick = () => { const n = $('pageNewColl').value.trim(); if (n) showSaved(addCollection(n).id); else $('pageNewColl').focus(); };
+  $('pageNewColl').onkeydown = (e) => { if (e.key === 'Enter') $('pageAddColl').click(); };
+  if (!c) return;
+  $('renColl').onclick = () => { $('renBox').hidden = !$('renBox').hidden; $('renInput').focus(); };
+  $('renSave').onclick = () => { const n = $('renInput').value.trim(); if (n) { c.name = n.slice(0, 60); writeCollections(); } showSaved(c.id); };
+  $('renInput').onkeydown = (e) => { if (e.key === 'Enter') $('renSave').click(); };
+  $('delColl').onclick = () => { $('delConfirm').hidden = false; };
+  $('delNo').onclick = () => { $('delConfirm').hidden = true; };
+  $('delYes').onclick = () => { collections = collections.filter((x) => x.id !== c.id); writeCollections(); showSaved(); };
+}
+$('savedBtn').onclick = () => showSaved(savedView);

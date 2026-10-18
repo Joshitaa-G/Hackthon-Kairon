@@ -1,6 +1,7 @@
 :root { --bg:#9acbff; --panel:#dceeff; --ink:#1c2330; --muted:#4f6480; --line:#a8cfee; --accent:#2563eb; --no:#2f855a; --mixed:#d69e2e; --yes:#c53030; --chip:#c5e2ff; }
 @media (prefers-color-scheme: dark) { :root { --bg:#0d1524; --panel:#151f32; --ink:#e8ecf3; --muted:#93a0b4; --line:#2a3b58; --accent:#60a5fa; --chip:#1c2b44; --no:#48bb78; --mixed:#ecc94b; --yes:#fc8181; } }
 * { box-sizing: border-box; }
+[hidden] { display:none !important; } /* layout classes must never un-hide hidden elements */
 body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg) url("stars.svg") repeat; color:var(--ink); }
 header { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line); }
 .brand { display:flex; gap:12px; align-items:center; } .logo { font-size:28px; }
@@ -112,3 +113,19 @@ label.check input { width:auto; margin:0; }
   .tabbar button span { font-size:20px; line-height:1.1; }
   .tabbar button.on { color:var(--accent); font-weight:600; }
 }
+
+/* ---- Saved collections and patterns ---- */
+.savebtn { margin-left:auto; background:none; border:1px solid var(--line); border-radius:8px; padding:2px 8px; cursor:pointer; font-size:15px; filter:grayscale(1); opacity:.55; }
+.savebtn.on { filter:none; opacity:1; border-color:var(--accent); background:var(--chip); }
+.exp.flash { box-shadow:0 0 0 3px var(--accent); }
+.exp { transition:box-shadow .3s; }
+.themes h4 { margin:12px 0 4px; font-size:15px; }
+.themes ul { padding-left:18px; } .themes li { margin-bottom:10px; }
+.srcs { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:4px; }
+.src { background:var(--chip); border:1px solid var(--line); border-left:3px solid var(--mixed); color:var(--ink); border-radius:99px; padding:1px 9px; font:inherit; font-size:12px; cursor:pointer; }
+.src.no { border-left-color:var(--no); } .src.yes { border-left-color:var(--yes); } .src.advice { border-left-color:#2b6cb0; }
+.newcoll { display:flex; gap:8px; margin-top:10px; } .newcoll input { flex:1; min-width:0; margin:0; }
+.colllist { display:flex; flex-direction:column; gap:10px; margin:6px 0 4px; }
+.collhead { display:flex; gap:12px; align-items:center; margin-bottom:8px; } .collhead h3 { margin:0; }
+#saveTo label.check { font-size:15px; }
+@media (max-width:720px) { .savebtn { padding:6px 10px; } .src { padding:5px 11px; } }

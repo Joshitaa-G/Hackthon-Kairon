@@ -72,10 +72,14 @@ app.post('/api/report', async (req, res) => {
     type: match.type, label: LABELS[match.type], confidence: match.confidence,
     story_count: outcomes.length, advice_count: stories.length - outcomes.length, regret: counts, show_percentages: outcomes.length >= MIN_FOR_PERCENT,
     top_reasons: summary.top_reasons, top_advice: summary.top_advice, no_regret_pattern: summary.no_regret_pattern, no_regret_advice: summary.no_regret_advice,
+    themes: summary.themes ?? null,
+    // Every story a theme cites, so each pattern can link back to its sources (advice posts included).
+    theme_sources: Object.fromEntries(stories.filter((s) => Object.values(summary.themes ?? {}).flat().some((t) => t.ids.includes(s.id)))
+      .map((s) => [s.id, { author: s.author, source_url: s.source_url, kind: s.kind, regret: s.regret }])),
     quotes: pickQuotes(stories, summary.quote_ids),
     // Full experiences, closest first: what each person faced, chose, and what happened — not just the regret label.
     experiences: outcomes.map(({ id, regret, situation, choice, outcome, main_reason, advice, years_later, age_at_decision, author, source_url, site, source }) =>
-      ({ id, regret, situation, choice, outcome, main_reason, advice, years_later, age_at_decision, author, source_url, site, source })),
+      ({ id, decision_type: match.type, regret, situation, choice, outcome, main_reason, advice, years_later, age_at_decision, author, source_url, site, source })),
     ai_summary: summary.llm, warning: summary.warning,
     canada_context: match.type === 'go_freelance' ? (await selfEmploymentContext(typeof province === 'string' ? province : undefined))?.text ?? null : null,
     context_source: 'Statistics Canada, Labour Force Survey, Table 14-10-0027-01',

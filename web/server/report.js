@@ -2,8 +2,30 @@
 import { createHash } from 'node:crypto';
 import { geminiConfigured, geminiJson } from './gemini.js';
 
-const SYSTEM = `You are given real stories and advice posts as JSON with ids. Items with kind "advice" are advice from experienced people (no regret label); kind "outcome" are personal decision stories. Write the 3 most common reasons for regret or no regret, the 3 most common pieces of advice, and one sentence on what people who did not regret it did differently. Use only these stories. Return quote_ids (3-5) of the most representative stories that have a quote. Do not write numbers or percentages. Do not quote text yourself.
-Return JSON: {"top_reasons": [3 short strings], "top_advice": [3 short strings], "no_regret_pattern": "one sentence", "quote_ids": [ids]}`;
+const SYSTEM = `You are given real stories and advice posts as JSON with ids. Items with kind "advice" are advice from experienced people (no regret label); kind "outcome" are personal decision stories. Write the 3 most common reasons for regret or no regret, the 3 most common pieces of advice, and one sentence on what people who did not regret it did differently. Use only these stories. Return quote_ids (3-5) of the most representative stories that have a quote.
+Also find recurring themes across the stories, in four groups: "common" (what people commonly experienced), "helped" (what helped them), "wish_known" (what people wish they had known), "differed" (where experiences differed). Each theme is one plain sentence about the stories, with "ids" listing every story that supports it. Only include a theme if at least 2 stories support it; 1 to 3 themes per group.
+Do not write numbers or percentages. Do not quote text yourself. Do not generalize about groups of people.
+Return JSON: {"top_reasons": [3 short strings], "top_advice": [3 short strings], "no_regret_pattern": "one sentence", "quote_ids": [ids],
+ "themes": {"common": [{"text": "...", "ids": [ids]}], "helped": [...], "wish_known": [...], "differed": [...]}}`;
+
+export const THEME_GROUPS = ['common', 'helped', 'wish_known', 'differed'];
+
+/** Keep only themes backed by at least 2 retrieved stories, with no numbers or percentages. Null when nothing is left. */
+export function cleanThemes(raw, ids) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out = {};
+  for (const g of THEME_GROUPS) {
+    const list = Object.hasOwn(raw, g) && Array.isArray(raw[g]) ? raw[g] : [];
+    out[g] = list.flatMap((t) => {
+      if (!t || typeof t.text !== 'string' || !Array.isArray(t.ids)) return [];
+      const text = t.text.trim();
+      if (!text || text.length > 220 || /[%\d]/.test(text)) return []; // the LLM never writes numbers (CLAUDE.md §5)
+      const src = [...new Set(t.ids.filter((id) => typeof id === 'string' && ids.has(id)))];
+      return src.length >= 2 ? [{ text, ids: src }] : [];
+    }).slice(0, 3);
+  }
+  return THEME_GROUPS.some((g) => out[g].length) ? out : null;
+}
 
 const cache = new Map();
 
@@ -21,14 +43,14 @@ function fallbackSummary(stories) {
   const noRegretAdvice = uniq('advice', outcomes.filter((s) => s.regret === 'no'));
   return {
     top_reasons: uniq('main_reason', outcomes), top_advice: uniq('advice', stories, new Set(noRegretAdvice)),
-    no_regret_pattern: '', no_regret_advice: noRegretAdvice,
+    no_regret_pattern: '', no_regret_advice: noRegretAdvice, themes: null,
     quote_ids: [...outcomes.filter((s) => s.quote).slice(0, 3), ...stories.filter((s) => s.kind === 'advice' && s.quote).slice(0, 1)].map((s) => s.id),
     llm: false,
   };
 }
 
 export async function buildSummary(type, stories) {
-  if (!stories.length) return { top_reasons: [], top_advice: [], no_regret_pattern: '', no_regret_advice: [], quote_ids: [], llm: false };
+  if (!stories.length) return { top_reasons: [], top_advice: [], no_regret_pattern: '', no_regret_advice: [], themes: null, quote_ids: [], llm: false };
   if (!geminiConfigured()) return fallbackSummary(stories);
 
   const key = createHash('sha1').update(type + stories.map((s) => s.id).join()).digest('hex');
@@ -43,6 +65,7 @@ export async function buildSummary(type, stories) {
       top_reasons: arr(out.top_reasons), top_advice: arr(out.top_advice),
       no_regret_pattern: typeof out.no_regret_pattern === 'string' ? out.no_regret_pattern : '', no_regret_advice: [],
       quote_ids: (out.quote_ids ?? []).filter((id) => ids.has(id)), // drop IDs not in the retrieved set
+      themes: cleanThemes(out.themes, ids),
       llm: true,
     };
     cache.set(key, summary);

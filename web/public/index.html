@@ -14,7 +14,7 @@
 <body>
   <header>
     <div class="brand"><span class="logo">🧭</span><div><h1>Kairon</h1><p>What actually happened to people who made your decision</p></div></div>
-    <div class="right"><div id="status" class="status">connecting…</div><button id="fypBtn" class="navbtn" type="button">For you</button><button id="bgBtn" class="navbtn" type="button">Your background</button><button id="browseBtn" class="navbtn" type="button">Browse stories</button><button id="shareBtn" class="navbtn primary" type="button">Share your story</button><button id="gear" type="button" title="Settings" aria-label="Settings">⚙️</button></div>
+    <div class="right"><div id="status" class="status">connecting…</div><button id="fypBtn" class="navbtn" type="button">For you</button><button id="savedBtn" class="navbtn" type="button">🔖 Saved</button><button id="bgBtn" class="navbtn" type="button">Your background</button><button id="browseBtn" class="navbtn" type="button">Browse stories</button><button id="shareBtn" class="navbtn primary" type="button">Share your story</button><button id="gear" type="button" title="Settings" aria-label="Settings">⚙️</button></div>
   </header>
   <main>
     <form id="ask" class="ask">
@@ -34,10 +34,19 @@
   <nav class="tabbar" aria-label="Kairon">
     <button type="button" data-tab="fypBtn"><span aria-hidden="true">🏠</span>For you</button>
     <button type="button" data-tab="ask"><span aria-hidden="true">🔍</span>Ask</button>
-    <button type="button" data-tab="browseBtn"><span aria-hidden="true">📚</span>Stories</button>
+    <button type="button" data-tab="savedBtn"><span aria-hidden="true">🔖</span>Saved</button>
     <button type="button" data-tab="shareBtn"><span aria-hidden="true">➕</span>Share</button>
     <button type="button" data-tab="bgBtn"><span aria-hidden="true">👤</span>You</button>
   </nav>
+  <dialog id="saveTo">
+    <form id="saveToForm" method="dialog">
+      <h2>Save to a collection</h2>
+      <p class="muted small">Your collections are saved on this device only.</p>
+      <div id="collList" class="colllist"></div>
+      <div class="newcoll"><input id="newColl" maxlength="60" placeholder="New collection, e.g. Deciding My Future" aria-label="New collection name"><button type="button" id="addColl" class="navbtn">Create</button></div>
+      <div class="actions"><span class="grow"></span><button type="submit" id="saveDone">Done</button></div>
+    </form>
+  </dialog>
   <dialog id="share" class="wide">
     <form id="shareForm" method="dialog">
       <h2>Share your story</h2>
