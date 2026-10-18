@@ -1,4 +1,4 @@
-# Been There
+# Kairon
 
 Answers a career/freelancing decision with what actually happened to people who made it. Runs locally in Node.js.
 
@@ -30,7 +30,7 @@ Then open http://localhost:3000. `npm install` also downloads the local embeddin
 | `public/index.html` | Page layout and the dialogs (Share your story, Browse stories, Settings) |
 | `public/index.js` | All browser logic: report, share form, story browser, hidden `embed` viewer, settings |
 | `public/style.css` | Styling |
-| `public/favicon.svg` | Browser tab icon (red compass) |
+| `public/logo.png`, `public/favicon.png`, `public/icon-*.png` | Kairon logo, browser tab icon and home-screen icons (stored locally so they work offline) |
 | `scripts/postinstall.js` | Runs on `npm install`; downloads the embedding model into `node_modules` |
 | `scripts/fetch-se.js` | Pulls raw posts from the Stack Exchange API |
 | `scripts/extract.js` | Gemini turns raw posts into structured stories (resumable) |
