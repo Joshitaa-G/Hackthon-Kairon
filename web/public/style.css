@@ -1,7 +1,7 @@
-:root { --bg:#f2f7ff; --panel:#fff; --ink:#1c2330; --muted:#667085; --line:#d8e4f5; --accent:#2563eb; --no:#2f855a; --mixed:#d69e2e; --yes:#c53030; --chip:#eaf2ff; }
+:root { --bg:#9acbff; --panel:#dceeff; --ink:#1c2330; --muted:#4f6480; --line:#a8cfee; --accent:#2563eb; --no:#2f855a; --mixed:#d69e2e; --yes:#c53030; --chip:#c5e2ff; }
 @media (prefers-color-scheme: dark) { :root { --bg:#0d1524; --panel:#151f32; --ink:#e8ecf3; --muted:#93a0b4; --line:#2a3b58; --accent:#60a5fa; --chip:#1c2b44; --no:#48bb78; --mixed:#ecc94b; --yes:#fc8181; } }
 * { box-sizing: border-box; }
-body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg) url("stars.svg") repeat; color:var(--ink); }
 header { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line); }
 .brand { display:flex; gap:12px; align-items:center; } .logo { font-size:28px; }
 h1::after { content:" ✦"; color:var(--accent); font-size:.7em; vertical-align:top; }
