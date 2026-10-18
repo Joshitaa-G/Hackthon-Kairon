@@ -1,0 +1,44 @@
+# Render Blueprint for the Been There API (free tier, 512 MB). See docs/deploy.md.
+# Memory measured locally: ~235 MB running, ~270 MB peak (fastembed/ONNX, no PyTorch).
+services:
+  - type: web
+    name: been-there-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    # Download the embedding model at build time so cold starts don't fetch ~90 MB
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/all-MiniLM-L6-v2')"
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: FASTEMBED_CACHE_PATH
+        value: /opt/render/project/src/backend/.fastembed_cache
+      - key: DB_PATH
+        value: data/been_there.sqlite
+      - key: RETRIEVE_K
+        value: "40"
+      - key: LLM_MOCK
+        value: "0"
+      - key: RATE_LIMIT
+        value: 30/minute
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: openai/gpt-oss-20b
+      - key: MATCH_LLM_MODEL
+        value: openai/gpt-oss-20b
+      - key: REPORT_LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: REPORT_LLM_MODEL
+        value: openai/gpt-oss-120b
+      # Secrets and the frontend URL: set these in the Render dashboard, never in git
+      - key: LLM_API_KEY
+        sync: false
+      - key: REPORT_LLM_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGIN
+        sync: false

@@ -22,3 +22,6 @@ dist/
 # Mock summary cache is rebuilt by tests; the real one is committed so deploys need no LLM calls
 data/mock/*.summaries.json
 data/export/stories.json
+
+# fastembed model cache (downloaded at build time on Render)
+.fastembed_cache/

@@ -82,9 +82,8 @@ def _summary(store, decision_type) -> dict:
     Counts and quotes stay per-question (top-k); the summary describes the decision overall,
     so judges refreshing or a server restart never trigger new LLM calls.
     """
-    stories = [s for s in store.stories if s["decision_type"] == decision_type][:SUMMARY_MAX]
-    ids = sorted(s["id"] for s in stories)
-    key = f"{decision_type}|{hashlib.sha1('|'.join(ids).encode()).hexdigest()[:12]}"  # new data = new key
+    stories = _summary_stories(store, decision_type)
+    key = summary_key(store, decision_type)
     cache = _disk_cache(store)
     if key in cache:
         return cache[key]
@@ -98,6 +97,20 @@ def _summary(store, decision_type) -> dict:
     cache[key] = out
     _cache_file(store).write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
     return out
+
+
+def _summary_stories(store, decision_type):
+    return [s for s in store.stories if s["decision_type"] == decision_type][:SUMMARY_MAX]
+
+
+def summary_key(store, decision_type) -> str:
+    ids = sorted(s["id"] for s in _summary_stories(store, decision_type))
+    return f"{decision_type}|{hashlib.sha1('|'.join(ids).encode()).hexdigest()[:12]}"  # new data = new key
+
+
+def has_llm_summary(store, decision_type) -> bool:
+    """True if this type's LLM summary is saved (False means reports use the code fallback)."""
+    return summary_key(store, decision_type) in _disk_cache(store)
 
 
 def _cache_file(store) -> Path:

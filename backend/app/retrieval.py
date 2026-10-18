@@ -67,16 +67,20 @@ def load_store(path=None) -> Store:
 
 
 def _model(name):
+    """fastembed runs the same all-MiniLM-L6-v2 weights on ONNX Runtime instead of PyTorch:
+    identical vectors (cosine 1.0 vs sentence-transformers) at ~390 MB instead of ~560 MB,
+    which fits Render's 512 MB free tier."""
     if name not in _models:
-        from sentence_transformers import SentenceTransformer  # slow import, load lazily
-        _models[name] = SentenceTransformer(name)
+        from fastembed import TextEmbedding  # load lazily
+        repo = name if "/" in name else f"sentence-transformers/{name}"
+        _models[name] = TextEmbedding(repo)
     return _models[name]
 
 
 def embed(texts, model_name) -> np.ndarray:
     """Embed with the SAME model the stories were embedded with (read from DB meta)."""
-    return _model(model_name).encode(list(texts), normalize_embeddings=True,
-                                     show_progress_bar=False).astype(np.float32)
+    vecs = np.array(list(_model(model_name).embed(list(texts))), dtype=np.float32)
+    return vecs / np.linalg.norm(vecs, axis=1, keepdims=True)
 
 
 def search(query: str, decision_type: str, k: int = None, store: Store = None) -> list[tuple[dict, float]]:

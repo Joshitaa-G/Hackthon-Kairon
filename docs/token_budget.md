@@ -2,40 +2,45 @@
 
 **Both of our Groq keys belong to the same account and share one quota.** (Checked: each model's
 remaining count dropped on both keys at the same moment.) Limits are **per model**:
-1,000 requests/day and 8,000 tokens/minute. Each model's count replenishes over about 24 h.
 
-## Who uses which model
-
-| Model | Used for | When |
+| Limit | Value | Notes |
 |---|---|---|
-| `qwen/qwen3.8-27b` | Extraction, half the posts | Tonight only |
-| `openai/gpt-oss-120b` | Extraction, other half + **report summaries** | Tonight + ~5 calls tomorrow |
-| `openai/gpt-oss-20b` | **`/match`** (only when no keyword hits) | Testing + demo |
+| Requests | 1,000 / day | |
+| Tokens per minute | 8,000 | |
+| **Tokens per day** | **200,000** | Not shown in response headers; this is what stopped extraction |
 
-## Need vs. have
+The daily windows are **rolling 24 h**, so tokens used tonight still count during the demo
+tomorrow afternoon.
 
-| | Requests needed | Per-model limit | Margin |
-|---|---|---|---|
-| Extraction tonight (Qwen) | ~310 | 1,000/day | about 3x |
-| Extraction tonight (120b) | ~310 | 1,000/day | about 3x |
-| Report summaries (120b) | **1 per decision type, about 5 total** | 1,000/day | huge |
-| `/match` testing today + demo (20b) | ~200 (most questions hit the free keyword path) | 1,000/day | 5x |
+## Status (Oct 17, about 9 PM)
 
-Each summary call is ~4K tokens, under the 8K/minute cap. A `/match` call is ~600 tokens, so
-about 13 vague questions per minute before rate limiting starts. Fine for judges.
+| Model | Used for | Daily tokens |
+|---|---|---|
+| `qwen/qwen3.8-27b` | Extraction | **Used up** (198,948 / 200,000) |
+| `openai/gpt-oss-120b` | Extraction + report summaries | Mostly used; extraction stopped to leave room |
+| `openai/gpt-oss-20b` | `/match` in the app | Almost untouched: **reserved for the demo** |
 
-## Why the demo can't run out
+Extraction was stopped at 389 of 706 posts (72 stories) so the demo can't run out.
 
-1. **Summaries are saved to disk** (`data/been_there.summaries.json`). Run `python scripts/warm_cache.py`
-   after the final data load and commit that file. Refreshes, restarts and redeploys then make **0 LLM calls**.
-2. **Keyword fast-path:** "PhD", "quit", "major", "career change", "gap year" match with no LLM call.
+## What the demo needs: almost nothing
+
+1. **Report summaries: 0 calls.** All 4 are saved in `data/been_there.summaries.json` (built with
+   `scripts/warm_cache.py`). Commit that file. If the database changes, rerun `warm_cache.py`
+   (4 calls, ~16K tokens).
+2. **`/match`: only for vague questions.** "PhD", "quit", "major", "career change", "gap year" match
+   with no LLM call. Other questions take 1 call on gpt-oss-20b (~600 tokens). The 200K daily
+   cap is about 300 vague questions.
 3. **If the LLM fails or hits a limit:**
    - `/match` offers the 2 closest decision types (local embeddings, no LLM).
-   - The report uses a code-only summary built from the extracted reasons and advice.
+   - Reports use the code-only summary built from the extracted reasons and advice.
    - Counts and quotes never need the LLM.
 4. **Embeddings are local** (`all-MiniLM-L6-v2`), with no API and no quota.
 
-## Rules for tonight
-- Don't run full extraction again tomorrow morning. If needed, use `--type` and `--limit` for small top-ups.
-- Run tests with mock mode (`LLM_MOCK=1`, the default in tests), so they cost 0 tokens.
-- Revoke and replace both Groq keys after the hackathon. They were pasted in chat.
+## Rules until judging
+- **Don't run extraction on Groq again.** It would use the quota the demo depends on.
+- **The other 317 posts need a different account.** Use a **Cerebras key** (separate provider, about
+  1M tokens/day free) or a teammate's own Groq account. Both work with
+  `LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL`; then rerun `extract.py`, which resumes where it stopped.
+- **Unit tests** (`pytest`) use mock mode and cost 0 tokens.
+- **The smoke test** (`scripts/smoke_test.py`) costs about 2 calls on gpt-oss-20b. Run it before judging.
+- **Revoke and replace both Groq keys after the hackathon.** They were pasted in chat.

@@ -99,7 +99,7 @@ EACH REPORT (FastAPI)
 **Tech stack:**
 - Backend: Python 3.11+, FastAPI, Uvicorn. Deploy on Render.
 - Storage: **SQLite** (one file, committed sample + script to rebuild). Embeddings stored as BLOBs. **No vector DB needed** at a few hundred to a few thousand stories: linear cosine scan in NumPy.
-- Embeddings: `sentence-transformers` `all-MiniLM-L6-v2` (local, free, no key) — or an embeddings API if preferred. Embed once at ingestion, cache.
+- Embeddings: `all-MiniLM-L6-v2` via **fastembed** (ONNX, local, free, no key; no PyTorch, so the API runs in ~235 MB and fits Render's 512 MB free tier). Embed once at ingestion, cache. Deploy: `render.yaml` + `docs/deploy.md`.
 - LLM: **free OpenAI-compatible providers** via the `openai` Python library, switched by env vars only (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`). Current: **Groq** free tier, where limits are per model (1,000 req/day, 8,000 tokens/min). Extraction ran on `qwen/qwen3.8-27b` and `openai/gpt-oss-20b` in parallel (`EXTRACT_SHARD`). The app uses `gpt-oss-120b` for report summaries (`REPORT_LLM_*`, ~1 call per decision type, saved to `<db>.summaries.json`) and `gpt-oss-20b` for `/match` (`MATCH_LLM_MODEL`). Both Groq keys share one quota; see `docs/token_budget.md`. Llama 3.3 70B is not available on our Groq key. The report summary can use a separate provider through `REPORT_LLM_*` (falls back to `LLM_*`). Free tiers may not support strict JSON schemas, so use JSON mode and rely on Pydantic validation. Wrap it in **one** function `llm_json(system, user, schema) -> dict` so it's swappable. Always request JSON; validate with Pydantic; retry once on invalid JSON.
 - Frontend: React + Tailwind (Vite or Next.js), deploy on Vercel. Can be scaffolded with Lovable/v0 and then wired to the API.
 

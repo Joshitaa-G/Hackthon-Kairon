@@ -52,5 +52,77 @@
    "se-academia-213651-a",
    "se-academia-148006-a"
   ]
+ },
+ "quit_job|c73597e1b6e7": {
+  "top_reasons": [
+   "Feeling guilty about causing extra costs for the company",
+   "Being guilt‑tripped by false promises from the employer",
+   "Stagnant skill growth due to lack of mentorship"
+  ],
+  "top_advice": [
+   "Be honest and open about your intentions to avoid wasting others’ time",
+   "Make any counteroffer or agreement official and treat resignation as final",
+   "Assess your employer critically, set technical goals, and leave if growth stalls"
+  ],
+  "no_regret_pattern": "Those who didn’t regret left promptly when trust was broken or the environment was toxic, often with another opportunity or a clear plan in place",
+  "quote_ids": [
+   "se-workplace-138702-a",
+   "se-workplace-147228-a",
+   "se-workplace-166630-a"
+  ]
+ },
+ "career_change|f5eeb58f638f": {
+  "top_reasons": [
+   "Feeling unfulfilled in academic or previous roles",
+   "Desiring better pay and work‑life balance",
+   "Wanting more practical impact and freedom"
+  ],
+  "top_advice": [
+   "Pursue interests and be open to change",
+   "Leverage transferable skills when switching fields",
+   "Consider industry for better pay and flexibility"
+  ],
+  "no_regret_pattern": "Those who didn’t regret left because they recognized misalignment with their goals and proactively sought environments offering fulfillment, compensation, and autonomy.",
+  "quote_ids": [
+   "se-academia-181806-a",
+   "se-academia-213651-a",
+   "se-academia-189821-a"
+  ]
+ },
+ "grad_vs_work|f2e3a5d9d98e": {
+  "top_reasons": [
+   "Financial stability and better income drove many to leave academia",
+   "Misalignment of research interests or field enjoyment prompted switches",
+   "Health concerns or fear of advisor reaction caused regretful exits"
+  ],
+  "top_advice": [
+   "Assess your true motivations and long‑term happiness before committing",
+   "If possible, finish the current PhD before changing paths",
+   "Seek career counseling or disability services early to explore alternatives"
+  ],
+  "no_regret_pattern": "They chose paths that matched personal values and realistic career prospects, avoiding prolonged mismatch",
+  "quote_ids": [
+   "se-academia-159951-a",
+   "se-academia-138237-a",
+   "se-academia-76238-a"
+  ]
+ },
+ "switch_major|3d9c437782fd": {
+  "top_reasons": [
+   "They enjoyed the new field or research project immensely",
+   "The new path better matched their skills and interests",
+   "It offered more practical career prospects"
+  ],
+  "top_advice": [
+   "Assess whether the field aligns with your strengths before committing",
+   "Switch to a more practical degree if the current focus doesn’t suit your goals",
+   "Seek feedback and explore classes to gauge fit"
+  ],
+  "no_regret_pattern": "They evaluated fit and proactively changed to a path that matched their interests and abilities",
+  "quote_ids": [
+   "se-academia-81104-a",
+   "se-academia-138163-q",
+   "se-academia-130667-a"
+  ]
  }
 }

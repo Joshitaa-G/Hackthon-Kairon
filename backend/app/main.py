@@ -38,7 +38,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 def warm_up():
-    """Load stories + the embedding model now; a cold first load takes ~40 s on a laptop."""
+    """Load stories + the embedding model now, so the first user request isn't the slow one."""
     store = load_store()
     embed(["warm up"], store.model_name)
 
