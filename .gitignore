@@ -1,0 +1,20 @@
+# Secrets: never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Data: raw pulls and form exports stay local
+data/raw/
+data/form/
+*.csv
+
+# Frontend
+node_modules/
+dist/
+.next/
