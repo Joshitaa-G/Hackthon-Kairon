@@ -122,8 +122,8 @@ label.check input { width:auto; margin:0; }
 .themes h4 { margin:12px 0 4px; font-size:15px; }
 .themes ul { padding-left:18px; } .themes li { margin-bottom:10px; }
 .srcs { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:4px; }
-.src { background:var(--chip); border:1px solid var(--line); border-left:3px solid var(--mixed); color:var(--ink); border-radius:99px; padding:1px 9px; font:inherit; font-size:12px; cursor:pointer; }
-.src.no { border-left-color:var(--no); } .src.yes { border-left-color:var(--yes); } .src.advice { border-left-color:#2b6cb0; }
+.src { background:var(--chip); border:2px solid var(--mixed); color:var(--ink); border-radius:99px; padding:1px 9px; font:inherit; font-size:12px; cursor:pointer; }
+.src.no { border-color:var(--no); } .src.yes { border-color:var(--yes); } .src.advice { border-color:#2b6cb0; } /* full outline = that person's outcome */
 .newcoll { display:flex; gap:8px; margin-top:10px; } .newcoll input { flex:1; min-width:0; margin:0; }
 .colllist { display:flex; flex-direction:column; gap:10px; margin:6px 0 4px; }
 .collhead { display:flex; gap:12px; align-items:center; margin-bottom:8px; } .collhead h3 { margin:0; }

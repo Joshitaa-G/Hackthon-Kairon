@@ -40,7 +40,7 @@ function setInCollection(cid, story, on) {
 const refreshSaveButtons = () => document.querySelectorAll('.savebtn').forEach((b) => b.classList.toggle('on', isSaved(b.dataset.save)));
 
 function experienceCard(e) {
-  const when = [e.age_at_decision != null && `age ${e.age_at_decision} at the time`, e.years_later != null && `${e.years_later} year${e.years_later === 1 ? '' : 's'} later`].filter(Boolean).join(' · ');
+  const when = [e.age_at_decision != null && `age ${e.age_at_decision} at the time`, e.years_later != null && (e.years_later < 1 ? 'less than a year later' : `${e.years_later} year${e.years_later === 1 ? '' : 's'} later`)].filter(Boolean).join(' · ');
   storyIndex.set(e.id, e);
   return `<article class="exp ${esc(e.regret)}" id="exp-${esc(e.id)}">
     <div class="exp-head">${e.label ? `<span class="tag">${esc(e.label)}</span>` : ''}<span class="badge ${esc(e.regret)}">${REGRET_LABEL[e.regret] ?? 'Mixed'}</span>${when ? `<span class="muted small">${esc(when)}</span>` : ''}
