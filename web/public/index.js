@@ -280,7 +280,7 @@ function loadStatus() { return fetch('/api/health').then((r) => r.json()).then((
   if ($('province').options.length === 1) for (const p of h.provinces) $('province').append(new Option(p, p));
   if ($('s_type').options.length === 0) for (const [id, label] of Object.entries(h.types)) { $('s_type').append(new Option(label, id)); $('btype').append(new Option(label, id)); }
   const s = $('status');
-  s.textContent = h.ok ? `${h.stories} stories · local embeddings · ${h.gemini ? 'Gemini on' : 'add Gemini key in ⚙️ (optional)'}` : 'run: npm run ingest';
+  s.textContent = h.ok ? `${h.stories} stories · local embeddings · ${h.gemini ? 'AI summaries on' : 'AI summaries optional'}` : 'run: npm run ingest';
   s.className = `status ${h.ok && h.gemini ? 'ok' : 'warn'}`;
   return h;
 }).catch(() => { $('status').textContent = 'server offline'; }); }
