@@ -14,7 +14,7 @@ const REGRET_LABEL = { no: 'No regret', mixed: 'Mixed', yes: 'Regrets it' };
 function experienceCard(e) {
   const when = [e.age_at_decision != null && `age ${e.age_at_decision} at the time`, e.years_later != null && `${e.years_later} year${e.years_later === 1 ? '' : 's'} later`].filter(Boolean).join(' · ');
   return `<article class="exp ${esc(e.regret)}">
-    <div class="exp-head"><span class="badge ${esc(e.regret)}">${REGRET_LABEL[e.regret] ?? 'Mixed'}</span>${when ? `<span class="muted small">${esc(when)}</span>` : ''}</div>
+    <div class="exp-head">${e.label ? `<span class="tag">${esc(e.label)}</span>` : ''}<span class="badge ${esc(e.regret)}">${REGRET_LABEL[e.regret] ?? 'Mixed'}</span>${when ? `<span class="muted small">${esc(when)}</span>` : ''}</div>
     <dl>
       <dt>Where they were</dt><dd>${esc(e.situation)}</dd>
       <dt>What they decided</dt><dd>${esc(e.choice)}</dd>
@@ -189,8 +189,47 @@ function saveQuiz(skipped) {
   writeBg(background);
   applyBackground();
   $('quiz').close();
-  startDemo();
+  if (!skipped || !$('out').innerHTML.trim()) landing();
 }
+
+// ---- For you: a feed for the reader's generation (worked out from the age they gave) ----
+const landing = () => (background?.generation ? showFeed() : startDemo());
+
+async function showFeed(gen = background?.generation) {
+  $('out').innerHTML = '<p class="muted">Picking stories for you…</p>';
+  const f = await (await fetch(`/api/feed?generation=${encodeURIComponent(gen ?? '')}`)).json();
+  const mine = background?.generation && (f.generation === background.generation || (background.generation === 'Silent Generation' && f.generation === 'Boomer'));
+  const title = !f.generation ? 'Stories for anyone weighing a big decision'
+    : mine ? `Picked for you: ${esc(f.generation)}, ${esc(f.stageLabel)}` : `Previewing the ${esc(f.generation)} feed: ${esc(f.stageLabel)}`;
+  $('out').innerHTML = `
+    <div class="card hero fyp"><span class="tag">For you</span>
+      <div class="gens" role="group" aria-label="Feed for each generation">${f.generations.map((g) => `<button type="button" data-g="${esc(g)}" class="${g === f.generation ? 'on' : ''}">${esc(g)}${background?.generation === g ? ' (you)' : ''}</button>`).join('')}</div>
+      <h2>${title}</h2>
+      <p class="muted small">Chosen from your generation only. Gender, ethnicity and where you live aren't used to pick stories, because the people in them didn't share those things. <button type="button" class="linkbtn" id="fypEdit">${background?.generation ? 'Change your answers' : 'Answer the quiz'}</button></p>
+      <h3>Decisions ${f.generation ? `${esc(f.generation)} readers` : 'people'} weigh</h3>
+      <div class="examples">${f.topics.map((t, i) => `<button type="button" data-i="${i}" ${t.count ? '' : 'disabled'}>${esc(t.label)} · ${t.count} stor${t.count === 1 ? 'y' : 'ies'}</button>`).join('')}</div>
+    </div>
+    <div class="card"><h3>Stories for you</h3>
+      <p class="muted small">Real outcomes from people who made these decisions, closest to where you are now first.</p>
+      <div class="exp-list" id="feedList"></div>
+      <button type="button" class="more navbtn" id="feedMore"></button>
+    </div>`;
+  $('fypEdit').onclick = openQuiz;
+  $('out').querySelectorAll('.fyp .gens button').forEach((b) => (b.onclick = () => showFeed(b.dataset.g)));
+  $('out').querySelectorAll('.fyp .examples button').forEach((b) => {
+    const t = f.topics[+b.dataset.i];
+    b.onclick = () => { $('q').value = t.question; run(t.question, t.type); };
+  });
+  let shown = 6;
+  const draw = () => {
+    $('feedList').innerHTML = f.items.slice(0, shown).map(experienceCard).join('') || '<p class="muted">No stories yet.</p>';
+    $('feedMore').hidden = shown >= f.items.length;
+    $('feedMore').textContent = `Show more (${f.items.length - shown} left)`;
+  };
+  $('feedMore').onclick = () => { shown += 6; draw(); };
+  draw();
+}
+$('fypBtn').onclick = () => showFeed();
 // What a shared story may carry: coarse fixed values only (the server re-checks them against the same lists).
 const backgroundForServer = () => (!background || background.skipped ? null : {
   generation: background.generation, gender: background.gender, country: background.country, region: background.region,
@@ -250,7 +289,7 @@ function loadStatus() { return fetch('/api/health').then((r) => r.json()).then((
 loadStatus().then((h) => {
   if (!h) return;
   buildQuiz(h.quiz);
-  if (background) { applyBackground(); startDemo(); } else openQuiz();
+  if (background) { applyBackground(); landing(); } else openQuiz();
 });
 
 // ---- Share your story (embedded locally by the server on arrival) ----

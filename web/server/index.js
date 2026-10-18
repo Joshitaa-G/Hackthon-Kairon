@@ -9,6 +9,7 @@ import { embed } from './embed.js';
 import { getSettings, saveSettings, maskKey, keyFromEnv } from './settings.js';
 import { fromRoot } from './paths.js';
 import { QUIZ_OPTIONS, cleanBackground } from './background.js';
+import { feedFor } from './feed.js';
 
 const MIN_FOR_PERCENT = 5;
 const MAX_QUESTION = 1000;
@@ -80,6 +81,9 @@ app.post('/api/report', async (req, res) => {
     context_source: 'Statistics Canada, Labour Force Survey, Table 14-10-0027-01',
   });
 });
+
+// For-you feed: only the generation comes in (Gen Z, Millennial, ...), never the exact age.
+app.get('/api/feed', async (req, res) => res.json(await feedFor(typeof req.query.generation === 'string' ? req.query.generation : '')));
 
 // Browse stored stories, inspect a story's embedding, and add a new story (embedded locally on arrival).
 app.get('/api/stories', async (req, res) => res.json(await listStories(typeof req.query.type === 'string' ? req.query.type : '')));
