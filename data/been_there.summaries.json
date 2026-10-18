@@ -124,5 +124,86 @@
    "se-academia-138163-q",
    "se-academia-130667-a"
   ]
+ },
+ "career_change|08290ed7c03a": {
+  "top_reasons": [
+   "lack of fulfillment in academic roles",
+   "desire for better pay and financial stability",
+   "need for improved work‑life balance"
+  ],
+  "top_advice": [
+   "consider industry as a viable alternative",
+   "prioritize mental health and personal interests when choosing a path",
+   "don’t fear change and be honest about career gaps"
+  ],
+  "no_regret_pattern": "They left academia for better pay, stability, and personal fulfillment while keeping professional ties open",
+  "quote_ids": [
+   "se-academia-176963-a",
+   "se-academia-133375-a",
+   "se-academia-127523-a",
+   "se-academia-189753-a",
+   "se-academia-215818-a"
+  ]
+ },
+ "switch_major|e7d05adf426f": {
+  "top_reasons": [
+   "They enjoyed the new field or research they moved into",
+   "The new program better matched their practical skill set and career goals",
+   "They realized the original major was a poor fit and needed change"
+  ],
+  "top_advice": [
+   "Assess whether your interests and abilities align with the chosen field before committing",
+   "Consider switching to a more practical or skill‑aligned degree if current coursework feels mismatched",
+   "Seek feedback and explore classes or advisors to confirm the best fit"
+  ],
+  "no_regret_pattern": "They identified a mismatch early and proactively changed to a program that suited their interests and strengths",
+  "quote_ids": [
+   "se-academia-81104-a",
+   "se-academia-138163-q",
+   "se-academia-210265-a"
+  ]
+ },
+ "quit_job|48cf129e2a35": {
+  "top_reasons": [
+   "Company paid a fee because of timing",
+   "Employer made false promises and guilt‑tripped the employee",
+   "Toxic culture and lack of growth opportunities",
+   "no_regret_pattern",
+   ":",
+   "They left when the workplace harmed their health",
+   "trust",
+   "or career goals",
+   "top_advice",
+   ":",
+   "Be honest and open about intentions to avoid wasting recruiters' time",
+   "Treat resignation as final and make counteroffers official",
+   "Prioritize honesty and reputation over short‑term gains",
+   "quote_ids",
+   ":",
+   "se-workplace-138702-a",
+   "se-workplace-150169-a",
+   "se-workplace-81507-a"
+  ],
+  "top_advice": [],
+  "no_regret_pattern": "",
+  "quote_ids": []
+ },
+ "grad_vs_work|ef31c8a89f64": {
+  "top_reasons": [
+   "Academic jobs unavailable or low prospects",
+   "Health or personal issues with advisor",
+   "Unrealistic expectations of PhD career"
+  ],
+  "top_advice": [
+   "Finish current PhD before switching",
+   "Evaluate true motivations and fit",
+   "Seek support from disability or career services"
+  ],
+  "no_regret_pattern": "Prioritize personal happiness, financial stability, or realistic career prospects over prestige",
+  "quote_ids": [
+   "se-academia-138237-a",
+   "se-academia-133822-a",
+   "se-academia-72199-a"
+  ]
  }
 }
