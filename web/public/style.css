@@ -79,3 +79,6 @@ label.check input { width:auto; margin:0; }
 .gens { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px; }
 .gens button { background:var(--chip); border:1px solid var(--line); color:var(--ink); border-radius:99px; padding:4px 12px; cursor:pointer; font:inherit; font-size:13px; }
 .gens button.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.qnote { margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--accent); font-size:14px; }
+.qnote.safety { border-left-color:var(--yes); }
+.qnote .examples { margin-top:8px; }

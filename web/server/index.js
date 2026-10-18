@@ -59,7 +59,7 @@ app.post('/api/report', async (req, res) => {
   const match = typeof forced === 'string' && Object.hasOwn(DECISION_TYPES, forced)
     ? { type: forced, confidence: 1, alternatives: [] } : await classify(question);
   if (!match.type) {
-    return res.json({ offTopic: true, message: 'Been There only covers these career decisions so far. Pick one if it fits.', alternatives: Object.entries(LABELS).map(([id, label]) => ({ id, label })) });
+    return res.json({ offTopic: true, message: "Did you mean one of these? That question isn't one of the decisions Been There covers yet.", alternatives: Object.entries(LABELS).map(([id, label]) => ({ id, label })) });
   }
   if (match.alternatives.length) {
     return res.json({ needsChoice: true, alternatives: match.alternatives.map((id) => ({ id, label: LABELS[id] })) });

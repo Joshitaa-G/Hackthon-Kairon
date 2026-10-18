@@ -97,8 +97,19 @@ function renderReport(r) {
   mountExperiences(r.experiences ?? []);
 }
 
+// Note right under the question box: "did you mean…" choices, or a pointer to the support resources.
+function showNote(content, kind = '', isHtml = false) {
+  const n = $('qNote');
+  n.hidden = !content;
+  n.className = `qnote ${kind}`;
+  if (isHtml) n.innerHTML = content; else n.textContent = content;
+}
+
+let runSeq = 0; // only the latest question may draw its answer
 async function run(question, type) {
+  const seq = ++runSeq;
   $('send').disabled = true;
+  showNote('');
   $('out').innerHTML = '<p class="muted">Finding people who made this decision…</p>';
   try {
     const res = await fetch('/api/report', {
@@ -106,16 +117,21 @@ async function run(question, type) {
       body: JSON.stringify({ question, type, province: $('province').value || undefined }),
     });
     const r = await res.json();
+    if (seq !== runSeq) return; // a newer question was asked meanwhile
     if (!res.ok) throw new Error(r.error || res.statusText);
     if (r.safety) {
+      showNote("We can't answer this one with stories, but you don't have to deal with it alone. Support is right below.", 'safety');
       $('out').innerHTML = `<div class="card safety"><h2>You're not alone</h2><p>${esc(r.safety.message)}</p><ul>${r.safety.resources.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
     } else if (r.needsChoice || r.offTopic) {
-      $('out').innerHTML = `<div class="card"><h3>${r.offTopic ? esc(r.message) : 'Which is closest to your decision?'}</h3><div class="examples">${r.alternatives.map((a) => `<button type="button" data-type="${a.id}">${esc(a.label)}</button>`).join('')}</div></div>`;
-      $('out').querySelectorAll('button').forEach((b) => (b.onclick = () => run(question, b.dataset.type)));
+      // Shown right under the question box, so it's the first thing the reader sees.
+      showNote(`<b>Did you mean one of these?</b> <span class="muted">${r.offTopic ? "That question isn't one of the decisions Been There covers yet." : 'Pick the closest one.'}</span>
+        <div class="examples">${r.alternatives.map((a) => `<button type="button" data-type="${esc(a.id)}">${esc(a.label)}</button>`).join('')}</div>`, 'choice', true);
+      $('qNote').querySelectorAll('button').forEach((b) => (b.onclick = () => run(question, b.dataset.type)));
+      $('out').innerHTML = '';
     } else renderReport(r);
   } catch (e) {
-    $('out').innerHTML = `<p class="warn">Error: ${esc(e.message)}</p>`;
-  } finally { $('send').disabled = false; }
+    if (seq === runSeq) $('out').innerHTML = `<p class="warn">Error: ${esc(e.message)}</p>`;
+  } finally { if (seq === runSeq) $('send').disabled = false; }
 }
 
 $('ask').addEventListener('submit', (e) => { e.preventDefault(); run($('q').value.trim()); });
@@ -196,6 +212,7 @@ function saveQuiz(skipped) {
 const landing = () => (background?.generation ? showFeed() : startDemo());
 
 async function showFeed(gen = background?.generation) {
+  showNote('');
   $('out').innerHTML = '<p class="muted">Picking stories for you…</p>';
   const f = await (await fetch(`/api/feed?generation=${encodeURIComponent(gen ?? '')}`)).json();
   const mine = background?.generation && (f.generation === background.generation || (background.generation === 'Silent Generation' && f.generation === 'Boomer'));
