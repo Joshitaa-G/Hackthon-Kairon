@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Been There</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="logo">🧭</span><div><h1>Been There</h1><p>What actually happened to people who made your decision</p></div></div>
+    <div class="right"><div id="status" class="status">connecting…</div><button id="bgBtn" class="navbtn" type="button">Your background</button><button id="browseBtn" class="navbtn" type="button">Browse stories</button><button id="shareBtn" class="navbtn primary" type="button">Share your story</button><button id="gear" type="button" title="Settings" aria-label="Settings">⚙️</button></div>
+  </header>
+  <main>
+    <form id="ask" class="ask">
+      <label for="q">What decision are you weighing?</label>
+      <div class="row">
+        <textarea id="q" rows="2" required placeholder="Should I quit my job and go freelance as a designer?"></textarea>
+        <select id="province" title="Province (for Canadian context)"><option value="">Canada</option></select>
+        <button id="send" type="submit">Show hindsight</button>
+      </div>
+      <div class="examples" id="examples"></div>
+      <p id="bgLine" class="muted small bgline"></p>
+    </form>
+    <section id="out"></section>
+  </main>
+  <footer>Stories are real first-person posts from Stack Exchange (CC BY-SA), summarised by AI — regret labels are AI-extracted estimates. Numbers are counted in code, quotes link to their source.</footer>
+  <dialog id="share" class="wide">
+    <form id="shareForm" method="dialog">
+      <h2>Share your story</h2>
+      <p class="muted small">Made a decision like this one? Tell us what happened. Anonymous — no name is saved, and emails, phone numbers and links are removed automatically. Please also leave out names and cities. Your story is embedded on this computer and added to the search straight away.</p>
+      <label>What are you sharing?
+        <select id="s_kind"><option value="outcome">My own story — I made this decision and here is what happened</option><option value="advice">Advice from experience — what I learned or would tell others</option></select></label>
+      <label>Decision type <select id="s_type" required></select></label>
+      <label>Situation — where were you? <textarea id="s_situation" rows="2" maxlength="300" required placeholder="Salaried UX designer, 5 years in, burnt out"></textarea></label>
+      <label>Choice — what did you decide? <textarea id="s_choice" rows="2" maxlength="300" required placeholder="Quit and went freelance"></textarea></label>
+      <label>Outcome — what happened? <textarea id="s_outcome" rows="2" maxlength="400" required placeholder="Income dipped for 6 months, now higher than before"></textarea></label>
+      <label id="regretRow">Do you regret it?
+        <select id="s_regret"><option value="">Choose…</option><option value="no">No, I'm glad I did it</option><option value="mixed">Mixed feelings</option><option value="yes">Yes, I regret it</option></select></label>
+      <div class="two">
+        <label>Main reason you decided <input id="s_reason" maxlength="200" placeholder="Wanted control over my time"></label>
+        <label>Your advice to others <input id="s_advice" maxlength="300" placeholder="Save 6 months of expenses first"></label>
+      </div>
+      <div class="two">
+        <label>Years since the decision <input id="s_years" type="number" min="0" max="60"></label>
+        <label>Your age then <input id="s_age" type="number" min="10" max="100"></label>
+      </div>
+      <label>A quote in your own words (optional) <textarea id="s_quote" rows="2" maxlength="300"></textarea></label>
+      <p id="shareMsg" class="warn small"></p>
+      <div class="actions"><span class="grow"></span><button type="button" id="closeShare" class="ghost">Cancel</button><button type="submit" id="submitShare">Add my story</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="browse" class="wide">
+    <div class="bhead"><h2>Stored stories <span id="bcount" class="muted small"></span></h2>
+      <select id="btype"><option value="">All decision types</option></select>
+      <button type="button" id="closeBrowse" class="ghost">Close</button></div>
+    <div id="blist"></div>
+  </dialog>
+
+  <dialog id="settings">
+    <form id="settingsForm" method="dialog">
+      <h2>Settings</h2>
+      <label>Gemini API key <span class="muted small" id="keyState"></span>
+        <input id="key" type="password" autocomplete="off" placeholder="Paste key (free at aistudio.google.com/apikey)">
+      </label>
+      <label>Gemini model
+        <input id="model" type="text" placeholder="gemini-3.8-flash">
+      </label>
+      <p class="muted small">Saved on this computer only (data/settings.json). Leave the key blank to keep the current one; the AI summary is optional.</p>
+      <p id="settingsMsg" class="warn small"></p>
+      <div class="actions"><button type="button" id="clearKey" class="ghost">Remove key</button><span class="grow"></span><button type="button" id="closeSettings" class="ghost">Close</button><button type="submit" id="saveSettings">Save</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="quiz" class="wide">
+    <form id="quizForm" method="dialog">
+      <h2>Before you ask: a bit about you</h2>
+      <p class="muted small">Every question is optional and anonymous. Your answers stay in this browser. If you later share a story, only your generation, gender, province or state, and background go with it: never your exact age, name, city or anything you type yourself.</p>
+      <div class="q">
+        <div class="qlabel">How old are you? <span id="genOut" class="gen"></span></div>
+        <div class="inline"><input id="b_age" type="number" min="10" max="100" inputmode="numeric" placeholder="e.g. 18" aria-label="Age">
+          <label class="check"><input type="checkbox" id="b_age_skip"> Prefer not to say</label></div>
+      </div>
+      <div class="q">
+        <div class="qlabel">Gender</div>
+        <select id="b_gender" aria-label="Gender"><option value="">Prefer not to say</option></select>
+        <input id="b_gender_self" maxlength="40" placeholder="Describe in your own words (kept on this device)" hidden aria-label="Gender, self-described">
+      </div>
+      <div class="q">
+        <div class="qlabel">Where do you live now? <span class="muted small">No city, just province or state.</span></div>
+        <div class="inline"><select id="b_country" aria-label="Country"><option value="">Prefer not to say</option></select>
+          <select id="b_region" aria-label="Province or state" hidden><option value="">Prefer not to say</option></select></div>
+      </div>
+      <div class="q">
+        <div class="qlabel">Ethnicity <span class="muted small">Pick any that fit (Statistics Canada groups).</span></div>
+        <div id="b_eth" class="checks"></div>
+        <input id="b_eth_self" maxlength="40" placeholder="Describe in your own words (kept on this device)" hidden aria-label="Ethnicity, self-described">
+      </div>
+      <div class="actions"><button type="button" id="quizSkip" class="ghost">Skip for now</button><span class="grow"></span><button type="submit" id="quizSave">Save and continue</button></div>
+    </form>
+  </dialog>
+  <script src="index.js" type="module"></script>
+</body>
+</html>

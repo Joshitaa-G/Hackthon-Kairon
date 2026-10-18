@@ -1,0 +1,23 @@
+{
+  "name": "career-decision-rag",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local RAG decision support for career and freelancing decisions (Stack Exchange stories + Statistics Canada LFS + optional Gemini)",
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js",
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "fetch": "node scripts/fetch-se.js",
+    "extract": "node scripts/extract.js",
+    "ingest": "node scripts/ingest.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
+    "express": "^5.3.0"
+  }
+}
