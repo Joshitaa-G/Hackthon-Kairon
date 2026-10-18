@@ -9,7 +9,7 @@
 </head>
 <body>
   <header>
-    <div class="brand"><span class="logo">🧭</span><div><h1>Been There</h1><p>What actually happened to people who made your decision</p></div></div>
+    <div class="brand"><span class="logo-wrap"><img class="logo" src="https://github.com/user-attachments/assets/dca60102-43a3-4b8b-8067-20f1e8040528" alt=""></span><div><h1>Been There</h1><p>What actually happened to people who made your decision</p></div></div>
     <div class="right"><div id="status" class="status">connecting…</div><button id="fypBtn" class="navbtn" type="button">For you</button><button id="bgBtn" class="navbtn" type="button">Your background</button><button id="browseBtn" class="navbtn" type="button">Browse stories</button><button id="shareBtn" class="navbtn primary" type="button">Share your story</button><button id="gear" type="button" title="Settings" aria-label="Settings">⚙️</button></div>
   </header>
   <main>
@@ -62,13 +62,13 @@
   <dialog id="settings">
     <form id="settingsForm" method="dialog">
       <h2>Settings</h2>
-      <label>Gemini API key <span class="muted small" id="keyState"></span>
-        <input id="key" type="password" autocomplete="off" placeholder="Paste key (free at aistudio.google.com/apikey)">
+      <label>AI provider API key <span class="muted small" id="keyState"></span>
+        <input id="key" type="password" autocomplete="off" placeholder="Paste API key">
       </label>
-      <label>Gemini model
-        <input id="model" type="text" placeholder="gemini-3.8-flash">
+      <label>AI model
+        <input id="model" type="text" placeholder="Provider model name">
       </label>
-      <p class="muted small">Saved on this computer only (data/settings.json). Leave the key blank to keep the current one; the AI summary is optional.</p>
+      <p class="muted small">Saved on this computer only (data/settings.json). Leave the key blank to keep the current one; AI summaries are optional.</p>
       <p id="settingsMsg" class="warn small"></p>
       <div class="actions"><button type="button" id="clearKey" class="ghost">Remove key</button><span class="grow"></span><button type="button" id="closeSettings" class="ghost">Close</button><button type="submit" id="saveSettings">Save</button></div>
     </form>

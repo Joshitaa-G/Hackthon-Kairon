@@ -3,7 +3,7 @@
 * { box-sizing: border-box; }
 body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg) url("stars.svg") repeat; color:var(--ink); }
 header { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line); }
-.brand { display:flex; gap:12px; align-items:center; } .logo { font-size:28px; }
+.brand { display:flex; gap:12px; align-items:center; } .logo-wrap { position:relative; width:48px; height:48px; flex:none; overflow:hidden; background:#000; } .logo { position:absolute; left:-18px; top:-22px; display:block; width:156px; height:auto; max-width:none; }
 h1::after { content:" ✦"; color:var(--accent); font-size:.7em; vertical-align:top; }
 h1 { margin:0; font-size:18px; } .brand p { margin:0; color:var(--muted); font-size:13px; }
 .status { font-size:12px; padding:4px 10px; border-radius:99px; background:var(--chip); color:var(--muted); } .status.ok { color:var(--no); } .status.warn { color:#b7791f; }
