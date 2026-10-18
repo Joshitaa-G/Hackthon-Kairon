@@ -214,8 +214,7 @@ $('ask').addEventListener('submit', (e) => { e.preventDefault(); run($('q').valu
 $('q').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('ask').requestSubmit(); } });
 for (const ex of [DEMO, ...EXAMPLES]) {
   const b = document.createElement('button');
-  b.type = 'button'; b.textContent = ex === DEMO ? `★ Demo: ${ex}` : ex;
-  if (ex === DEMO) b.className = 'demo';
+  b.type = 'button'; b.textContent = ex;
   b.onclick = () => { $('q').value = ex; $('ask').requestSubmit(); };
   $('examples').append(b);
 }
