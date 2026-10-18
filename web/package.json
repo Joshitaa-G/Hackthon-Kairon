@@ -11,7 +11,8 @@
     "fetch": "node scripts/fetch-se.js",
     "extract": "node scripts/extract.js",
     "ingest": "node scripts/ingest.js",
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "reset-demo": "node scripts/reset-demo.js"
   },
   "engines": {
     "node": ">=18"

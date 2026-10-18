@@ -1,5 +1,11 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s = '') => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// Demo reset: http://localhost:3000/?reset clears this browser's quiz answers and saved collections,
+// then starts fresh at the quiz. (Shared stories on the server are cleared with `npm run reset-demo`.)
+if (new URLSearchParams(location.search).has('reset')) {
+  try { localStorage.removeItem('beenThere.background'); localStorage.removeItem('kairon.collections'); } catch { /* nothing stored */ }
+  history.replaceState(null, '', location.pathname);
+}
 // Demo default: the question with the richest curated data (40 stories, 14 advice posts, all three outcomes).
 // The page opens on this report; add ?nodemo to the URL to start blank.
 const DEMO = 'Should I leave my PhD for an industry job?';

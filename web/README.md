@@ -10,6 +10,8 @@ Needs Node.js 18+. Open this folder in a terminal and run:
 npm install && npm start
 ```
 
+**Reset before a demo:** `npm run reset-demo` removes stories shared through the app (keeps the curated stories and your AI key). Restart with `npm start`, then open http://localhost:3000/?reset to clear the browser's quiz answers and saved collections so the app starts at the quiz.
+
 **API key:** never commit it. Locally, paste it in ⚙️ Settings (saved to `data/settings.json`, which is gitignored). On a server, set the `GEMINI_API_KEY` environment variable instead (optional `GEMINI_MODEL`, default `gemini-3.8-flash`); the key is never sent to the browser, and only the first and last 4 characters are ever shown.
 
 Then open http://localhost:3000. `npm install` also downloads the local embedding model. No API key is needed to start; add a free Gemini key later in ⚙️ Settings. **Get one at https://aistudio.google.com/apikey** (sign in with Google, click "Create API key", paste it into Settings).
