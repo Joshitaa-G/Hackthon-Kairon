@@ -1,13 +1,14 @@
-:root { --bg:#f6f7f9; --panel:#fff; --ink:#1c2330; --muted:#667085; --line:#e3e7ee; --accent:#d4351c; --no:#2f855a; --mixed:#d69e2e; --yes:#c53030; --chip:#eef2f7; }
-@media (prefers-color-scheme: dark) { :root { --bg:#0f131a; --panel:#171c26; --ink:#e8ecf3; --muted:#93a0b4; --line:#2a3242; --chip:#212938; --no:#48bb78; --mixed:#ecc94b; --yes:#fc8181; } }
+:root { --bg:#9acbff; --panel:#dceeff; --ink:#1c2330; --muted:#4f6480; --line:#a8cfee; --accent:#2563eb; --no:#2f855a; --mixed:#d69e2e; --yes:#c53030; --chip:#c5e2ff; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0d1524; --panel:#151f32; --ink:#e8ecf3; --muted:#93a0b4; --line:#2a3b58; --accent:#60a5fa; --chip:#1c2b44; --no:#48bb78; --mixed:#ecc94b; --yes:#fc8181; } }
 * { box-sizing: border-box; }
-body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg) url("stars.svg") repeat; color:var(--ink); }
 header { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line); }
 .brand { display:flex; gap:12px; align-items:center; } .logo { font-size:28px; }
+h1::after { content:" ✦"; color:var(--accent); font-size:.7em; vertical-align:top; }
 h1 { margin:0; font-size:18px; } .brand p { margin:0; color:var(--muted); font-size:13px; }
 .status { font-size:12px; padding:4px 10px; border-radius:99px; background:var(--chip); color:var(--muted); } .status.ok { color:var(--no); } .status.warn { color:#b7791f; }
 main { max-width:860px; margin:0 auto; padding:20px 16px 40px; }
-.ask label { font-weight:600; display:block; margin-bottom:6px; }
+.ask label { font-weight:600; display:block; margin-bottom:6px; } .ask > label::after { content:" ✧"; color:var(--accent); }
 .row { display:flex; gap:10px; flex-wrap:wrap; } .row textarea { flex:1 1 320px; resize:none; }
 input,select,textarea { font:inherit; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
 #send { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:0 20px; font-weight:600; cursor:pointer; min-height:42px; } #send:disabled { opacity:.5; }
