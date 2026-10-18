@@ -129,3 +129,5 @@ label.check input { width:auto; margin:0; }
 .collhead { display:flex; gap:12px; align-items:center; margin-bottom:8px; } .collhead h3 { margin:0; }
 #saveTo label.check { font-size:15px; }
 @media (max-width:720px) { .savebtn { padding:6px 10px; } .src { padding:5px 11px; } }
+#saveTo .actions { margin-top:18px; padding-top:14px; border-top:1px solid var(--line); } /* keep Done clear of Create */
+#saveTo .newcoll .navbtn { padding:8px 16px; }
