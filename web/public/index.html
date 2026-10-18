@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Been There</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Kairon">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Kairon</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <div class="brand"><span class="logo">🧭</span><div><h1>Been There</h1><p>What actually happened to people who made your decision</p></div></div>
+    <div class="brand"><span class="logo">🧭</span><div><h1>Kairon</h1><p>What actually happened to people who made your decision</p></div></div>
     <div class="right"><div id="status" class="status">connecting…</div><button id="fypBtn" class="navbtn" type="button">For you</button><button id="bgBtn" class="navbtn" type="button">Your background</button><button id="browseBtn" class="navbtn" type="button">Browse stories</button><button id="shareBtn" class="navbtn primary" type="button">Share your story</button><button id="gear" type="button" title="Settings" aria-label="Settings">⚙️</button></div>
   </header>
   <main>
@@ -27,6 +31,13 @@
     <section id="out"></section>
   </main>
   <footer>Stories are real first-person posts from Stack Exchange (CC BY-SA), summarised by AI — regret labels are AI-extracted estimates. Numbers are counted in code, quotes link to their source.</footer>
+  <nav class="tabbar" aria-label="Kairon">
+    <button type="button" data-tab="fypBtn"><span aria-hidden="true">🏠</span>For you</button>
+    <button type="button" data-tab="ask"><span aria-hidden="true">🔍</span>Ask</button>
+    <button type="button" data-tab="browseBtn"><span aria-hidden="true">📚</span>Stories</button>
+    <button type="button" data-tab="shareBtn"><span aria-hidden="true">➕</span>Share</button>
+    <button type="button" data-tab="bgBtn"><span aria-hidden="true">👤</span>You</button>
+  </nav>
   <dialog id="share" class="wide">
     <form id="shareForm" method="dialog">
       <h2>Share your story</h2>

@@ -1,0 +1,10 @@
+{
+  "name": "Kairon",
+  "short_name": "Kairon",
+  "description": "What actually happened to people who made your decision.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#9acbff",
+  "theme_color": "#2563eb",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -108,6 +108,7 @@ function showNote(content, kind = '', isHtml = false) {
 let runSeq = 0; // only the latest question may draw its answer
 async function run(question, type) {
   const seq = ++runSeq;
+  setTab('ask');
   $('send').disabled = true;
   showNote('');
   $('out').innerHTML = '<p class="muted">Finding people who made this decision…</p>';
@@ -124,7 +125,7 @@ async function run(question, type) {
       $('out').innerHTML = `<div class="card safety"><h2>You're not alone</h2><p>${esc(r.safety.message)}</p><ul>${r.safety.resources.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
     } else if (r.needsChoice || r.offTopic) {
       // Shown right under the question box, so it's the first thing the reader sees.
-      showNote(`<b>Did you mean one of these?</b> <span class="muted">${r.offTopic ? "That question isn't one of the decisions Been There covers yet." : 'Pick the closest one.'}</span>
+      showNote(`<b>Did you mean one of these?</b> <span class="muted">${r.offTopic ? "That question isn't one of the decisions <i>Kairon</i> covers yet." : 'Pick the closest one.'}</span>
         <div class="examples">${r.alternatives.map((a) => `<button type="button" data-type="${esc(a.id)}">${esc(a.label)}</button>`).join('')}</div>`, 'choice', true);
       $('qNote').querySelectorAll('button').forEach((b) => (b.onclick = () => run(question, b.dataset.type)));
       $('out').innerHTML = '';
@@ -213,6 +214,7 @@ const landing = () => (background?.generation ? showFeed() : startDemo());
 
 async function showFeed(gen = background?.generation) {
   showNote('');
+  setTab('fypBtn');
   $('out').innerHTML = '<p class="muted">Picking stories for you…</p>';
   const f = await (await fetch(`/api/feed?generation=${encodeURIComponent(gen ?? '')}`)).json();
   const mine = background?.generation && (f.generation === background.generation || (background.generation === 'Silent Generation' && f.generation === 'Boomer'));
@@ -370,3 +372,9 @@ $('blist').addEventListener('click', async (e) => {
   box.hidden = false;
   btn.classList.add('open');
 });
+
+// ---- Phone tab bar: the same actions as the header buttons ----
+function setTab(id) { document.querySelectorAll('.tabbar button').forEach((b) => b.classList.toggle('on', b.dataset.tab === id)); }
+document.querySelectorAll('.tabbar button').forEach((b) => (b.onclick = () => {
+  if (b.dataset.tab === 'ask') { setTab('ask'); window.scrollTo({ top: 0, behavior: 'smooth' }); $('q').focus(); } else $(b.dataset.tab).click();
+}));

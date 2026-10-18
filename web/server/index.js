@@ -59,7 +59,7 @@ app.post('/api/report', async (req, res) => {
   const match = typeof forced === 'string' && Object.hasOwn(DECISION_TYPES, forced)
     ? { type: forced, confidence: 1, alternatives: [] } : await classify(question);
   if (!match.type) {
-    return res.json({ offTopic: true, message: "Did you mean one of these? That question isn't one of the decisions Been There covers yet.", alternatives: Object.entries(LABELS).map(([id, label]) => ({ id, label })) });
+    return res.json({ offTopic: true, message: "Did you mean one of these? That question isn't one of the decisions Kairon covers yet.", alternatives: Object.entries(LABELS).map(([id, label]) => ({ id, label })) });
   }
   if (match.alternatives.length) {
     return res.json({ needsChoice: true, alternatives: match.alternatives.map((id) => ({ id, label: LABELS[id] })) });
@@ -139,4 +139,4 @@ const host = process.env.HOST || '127.0.0.1';
 await loadStore().catch(() => console.warn(`! ${STORE_FILE} missing — run \`npm run ingest\``));
 await loadContext();
 await embed(['warm up']);
-app.listen(port, host, () => console.log(`Been There (Node) → http://localhost:${port}`));
+app.listen(port, host, () => console.log(`Kairon → http://localhost:${port}`));
