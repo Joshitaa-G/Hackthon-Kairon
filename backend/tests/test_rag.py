@@ -34,6 +34,7 @@ RECALL = [  # query, type, story that should come back in the top 5
 
 @pytest.fixture(autouse=True)
 def fresh():
+    load_store().db_path.with_suffix(".summaries.json").unlink(missing_ok=True)
     report.clear_cache()
     mock_llm.calls.clear()
 
@@ -117,6 +118,14 @@ def test_keyword_fast_path_uses_no_llm():
 def test_unknown_llm_type_becomes_other(monkeypatch):
     monkeypatch.setattr(match_mod, "llm_json", lambda *a, **k: {"type": "astronaut", "confidence": 0.9})
     m = classify("should I move to a new city")
+    assert m.type == "other" and len(m.alternatives) == 2
+
+
+def test_llm_down_offers_alternatives(monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("429 requests per day")
+    monkeypatch.setattr(match_mod, "llm_json", boom)
+    m = classify("thinking about moving cities for a job")
     assert m.type == "other" and len(m.alternatives) == 2
 
 

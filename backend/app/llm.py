@@ -14,7 +14,7 @@ import os
 import re
 import time
 
-from openai import APIStatusError, OpenAI, RateLimitError
+from openai import APIStatusError, BadRequestError, OpenAI, RateLimitError
 from pydantic import BaseModel, ValidationError
 
 from .config import load_env
@@ -83,6 +83,12 @@ def llm_json(system, user, schema: type[BaseModel], role="extract", max_tokens=8
 
 
 def _call_with_rate_limit(c, model, messages, max_tokens, tries=6):
+    extra = {}
+    if "gpt-oss" in model:
+        # reasoning models spend hidden tokens thinking; keep it short and leave room for the JSON
+        extra = {"extra_body": {"reasoning_effort": "low"}}
+        max_tokens = max(max_tokens, 1500)
+    json_mode = {"response_format": {"type": "json_object"}}
     for attempt in range(tries):
         try:
             return c.chat.completions.create(
@@ -90,8 +96,16 @@ def _call_with_rate_limit(c, model, messages, max_tokens, tries=6):
                 messages=messages,
                 temperature=0,
                 max_tokens=max_tokens,
-                response_format={"type": "json_object"},
+                **json_mode,
+                **extra,
             )
+        except BadRequestError as e:
+            # Groq rejects output that fails its JSON check; retry once without JSON mode and
+            # let _parse_json + Pydantic validate it instead
+            if json_mode and "json" in str(e).lower():
+                json_mode = {}
+                continue
+            raise
         except RateLimitError as e:
             wait = _retry_after(e) or min(60, 5 * 2 ** attempt)
             if _is_daily_limit(e):

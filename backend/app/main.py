@@ -19,7 +19,7 @@ from .llm import is_mock
 from .match import classify
 from .models import MatchRequest, MatchResponse, Report, SafetyResponse
 from .report import build_report
-from .retrieval import load_store
+from .retrieval import embed, load_store
 
 load_env()
 RATE = os.environ.get("RATE_LIMIT", "30/minute")
@@ -34,6 +34,13 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def warm_up():
+    """Load stories + the embedding model now; a cold first load takes ~40 s on a laptop."""
+    store = load_store()
+    embed(["warm up"], store.model_name)
 
 
 @app.get("/health")

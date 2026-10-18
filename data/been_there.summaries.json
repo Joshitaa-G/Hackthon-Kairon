@@ -1,0 +1,56 @@
+{
+ "grad_vs_work|0b082f59b298": {
+  "top_reasons": [
+   "Emotional dissatisfaction with supervision or program environment",
+   "Fear of negative perception from advisors or department",
+   "Misalignment between research interests and program focus"
+  ],
+  "top_advice": [
+   "Evaluate your true motivations and long‑term goals before making a switch",
+   "Seek open dialogue with advisors and use disability or career support services",
+   "Consider finishing the current degree before pursuing new opportunities"
+  ],
+  "no_regret_pattern": "People who didn’t regret their decision prioritized personal happiness, financial stability, and realistic career goals over academic prestige",
+  "quote_ids": [
+   "se-academia-138237-a",
+   "se-academia-133822-a",
+   "se-academia-204339-a"
+  ]
+ },
+ "quit_job|9213987c1a91": {
+  "top_reasons": [
+   "Toxic or hostile work environment",
+   "Employer broke promised compensation or terms",
+   "Health stress from overwork"
+  ],
+  "top_advice": [
+   "Leave the job immediately when trust is broken",
+   "Get important promises in writing",
+   "Have a new role or transition plan before resigning"
+  ],
+  "no_regret_pattern": "They quit decisively when the employer violated trust or created an untenable environment, often with a backup plan or clear alternative.",
+  "quote_ids": [
+   "se-workplace-150169-a",
+   "se-workplace-147228-a",
+   "se-workplace-147316-a"
+  ]
+ },
+ "career_change|770f89ce1c8f": {
+  "top_reasons": [
+   "Feeling unfulfilled in the current role",
+   "Seeking better work‑life balance or salary",
+   "Desiring more freedom and independence"
+  ],
+  "top_advice": [
+   "Look for a different job if you’re unfulfilled",
+   "Don’t be afraid of change and explore industry options",
+   "Industry jobs can fund personal research and provide flexibility"
+  ],
+  "no_regret_pattern": "They left academia to prioritize personal fulfillment, practical impact, and greater autonomy over traditional academic prestige.",
+  "quote_ids": [
+   "se-academia-181806-a",
+   "se-academia-213651-a",
+   "se-academia-148006-a"
+  ]
+ }
+}

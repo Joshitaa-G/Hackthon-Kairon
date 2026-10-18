@@ -2,7 +2,7 @@
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ---- LLM outputs (validated in llm_json) ----
@@ -18,6 +18,29 @@ class SummaryOut(BaseModel):
     top_advice: list[str] = []
     no_regret_pattern: str = ""
     quote_ids: list[str] = []
+
+    @field_validator("top_reasons", "top_advice", "quote_ids", mode="before")
+    @classmethod
+    def _flatten(cls, v):
+        """Small models sometimes nest lists in dicts ({"regret": [...]}); flatten to strings."""
+        out = []
+
+        def walk(x):
+            if isinstance(x, dict):
+                for item in x.values():
+                    walk(item)
+            elif isinstance(x, list):
+                for item in x:
+                    walk(item)
+            elif x is not None:
+                out.append(str(x))
+        walk(v)
+        return out
+
+    @field_validator("no_regret_pattern", mode="before")
+    @classmethod
+    def _join(cls, v):
+        return " ".join(v) if isinstance(v, list) else (v or "")
 
 
 # ---- API ----

@@ -18,3 +18,7 @@ data/form/
 node_modules/
 dist/
 .next/
+
+# Mock summary cache is rebuilt by tests; the real one is committed so deploys need no LLM calls
+data/mock/*.summaries.json
+data/export/stories.json

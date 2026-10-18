@@ -1,7 +1,8 @@
 """
 Been There, step 3: pull raw outcome-candidate posts from Stack Exchange.
 
-Run:   python scripts/fetch_se.py
+Run:   python scripts/fetch_se.py                  # pass 1: keyword x outcome phrase
+       python scripts/fetch_se.py --first-person   # pass 2: "I quit my job" etc., merged in
 Needs: Python 3 only (standard library). Uses SE_API_KEY from .env or the environment if set.
 Output: data/raw/{decision_type}.jsonl, one post per line.
 
@@ -12,6 +13,7 @@ How it works:
   3. Strip HTML and save with author, link, site, score and date (CC BY-SA attribution).
 """
 
+import argparse
 import gzip
 import html
 import json
@@ -28,6 +30,7 @@ API = "https://api.stackexchange.com/2.3"
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 MAX_PER_TYPE = 150
+MAX_NEW_FIRST_PERSON = 200
 
 OUTCOME_PHRASES = [
     '"looking back"',
@@ -46,6 +49,20 @@ DECISIONS = {
     "quit_job":      ("workplace", ["quit job", "resign"]),
     "career_change": ("workplace", ["career change", "switch careers"]),
 }
+
+# Pass 2 (--first-person): exact first-person phrases. Far more of these hits are someone
+# telling what THEY did, which is what extraction keeps. Results merge into the same files.
+FIRST_PERSON = {
+    "switch_major":  ("academia",  ['"I switched majors"', '"I changed my major"', '"switched my major"',
+                                    '"I changed fields"', '"I switched fields"', '"I switched to"']),
+    "grad_vs_work":  ("academia",  ['"I left my PhD"', '"I quit my PhD"', '"I left academia"',
+                                    '"I dropped out of my PhD"', '"I went to industry"', '"I left the PhD"']),
+    "quit_job":      ("workplace", ['"I quit my job"', '"when I quit"', '"I resigned"', '"I left my job"',
+                                    '"I handed in my notice"', '"after I quit"']),
+    "career_change": ("workplace", ['"I changed careers"', '"I switched careers"', '"my career change"',
+                                    '"I made a career change"', '"changed careers"', '"I retrained"']),
+}
+FIRST_PERSON_PAGES = 2
 
 
 def load_env():
@@ -111,20 +128,22 @@ def strip_html(body):
     return text.strip()
 
 
-def collect_ids(site, keywords):
+def collect_ids(site, queries, pages=1):
     """Return ordered unique (item_type, id) pairs, answers before questions."""
     answers, questions = {}, {}
-    for kw in keywords:
-        for phrase in OUTCOME_PHRASES:
-            data = get("/search/excerpts", q=f"{kw} {phrase}", site=site,
+    for q in queries:
+        for page in range(1, pages + 1):
+            data = get("/search/excerpts", q=q, site=site, page=page,
                        pagesize=100, sort="relevance", order="desc")
             for item in data.get("items", []):
                 if item.get("item_type") == "answer":
                     answers.setdefault(item["answer_id"], None)
                 else:
                     questions.setdefault(item["question_id"], None)
-            print(f"  {kw!r} {phrase}: {len(data.get('items', []))} hits "
+            print(f"  {q} p{page}: {len(data.get('items', []))} hits "
                   f"(running: {len(answers)} answers, {len(questions)} questions)")
+            if not data.get("has_more"):
+                break
     return [("answer", i) for i in answers] + [("question", i) for i in questions]
 
 
@@ -137,7 +156,7 @@ def fetch_bodies(site, kind, ids):
     return out
 
 
-def to_record(site, kind, item, decision_type):
+def to_record(site, kind, item, decision_type, query_kind):
     pid = item[f"{kind}_id"]
     short = "a" if kind == "answer" else "q"
     owner = item.get("owner", {})
@@ -155,28 +174,47 @@ def to_record(site, kind, item, decision_type):
         "creation_date": item.get("creation_date"),
         "body": strip_html(item.get("body", "")),
         "license": "CC BY-SA 4.0",
+        "query_kind": query_kind,  # "first_person" posts are extracted first
     }
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--first-person", action="store_true",
+                    help="pass 2: exact first-person phrases, merged into the existing files")
+    args = ap.parse_args()
     load_env()
     RAW_DIR.mkdir(parents=True, exist_ok=True)
-    for decision_type, (site, keywords) in DECISIONS.items():
-        print(f"\n== {decision_type} ({site})")
-        pairs = collect_ids(site, keywords)[:MAX_PER_TYPE]
+
+    if args.first_person:
+        plan = {t: (site, qs, FIRST_PERSON_PAGES, "first_person") for t, (site, qs) in FIRST_PERSON.items()}
+        cap = MAX_NEW_FIRST_PERSON
+    else:
+        plan = {t: (site, [f"{kw} {ph}" for kw in kws for ph in OUTCOME_PHRASES], 1, "outcome_phrase")
+                for t, (site, kws) in DECISIONS.items()}
+        cap = MAX_PER_TYPE
+
+    for decision_type, (site, queries, pages, kind_tag) in plan.items():
+        print(f"\n== {decision_type} ({site}, {kind_tag})")
+        path = RAW_DIR / f"{decision_type}.jsonl"
+        existing = {}
+        if args.first_person and path.exists():
+            existing = {r["id"]: r for r in map(json.loads, path.open(encoding="utf-8"))}
+        short = {"answer": "a", "question": "q"}
+        pairs = [(k, i) for k, i in collect_ids(site, queries, pages)
+                 if f"se-{site}-{i}-{short[k]}" not in existing][:cap]
         answer_ids = [i for k, i in pairs if k == "answer"]
         question_ids = [i for k, i in pairs if k == "question"]
         items = [("answer", it) for it in fetch_bodies(site, "answer", answer_ids)]
         items += [("question", it) for it in fetch_bodies(site, "question", question_ids)]
 
-        path = RAW_DIR / f"{decision_type}.jsonl"
+        new = [to_record(site, kind, item, decision_type, kind_tag) for kind, item in items]
+        new = [r for r in new if len(r["body"]) >= 200]  # too short to hold a story
+        rows = list(existing.values()) + new
         with path.open("w", encoding="utf-8") as f:
-            for kind, item in items:
-                rec = to_record(site, kind, item, decision_type)
-                if len(rec["body"]) >= 200:  # too short to hold a story
-                    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-        n = sum(1 for _ in path.open(encoding="utf-8"))
-        print(f"  saved {n} posts -> {path.relative_to(ROOT)}")
+            for rec in rows:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        print(f"  +{len(new)} new, {len(rows)} total -> {path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

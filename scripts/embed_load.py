@@ -17,7 +17,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 ROOT = Path(__file__).resolve().parent.parent
-STORIES = ROOT / "data" / "stories.jsonl"
+STORIES = (ROOT / "data" / "stories.jsonl").resolve()
 DB = ROOT / "data" / "been_there.sqlite"
 MODEL = "all-MiniLM-L6-v2"
 
@@ -49,11 +49,13 @@ def story_text(s):
 
 
 def build(input_path=STORIES, db_path=DB, source="stackexchange"):
-    input_path, db_path = Path(input_path), Path(db_path)
+    input_path, db_path = Path(input_path).resolve(), Path(db_path)
     if source == "mock" and db_path.resolve() == DB.resolve():
         raise SystemExit("Refusing to load mock stories into the real database.")
 
-    stories = [json.loads(line) for line in input_path.open(encoding="utf-8") if line.strip()]
+    # default input also picks up shard files from parallel extraction runs
+    paths = sorted(input_path.parent.glob("stories*.jsonl")) if input_path == STORIES else [input_path]
+    stories = [json.loads(line) for p in paths for line in p.open(encoding="utf-8") if line.strip()]
     stories = list({s["id"]: s for s in stories}.values())
     for s in stories:
         s.setdefault("source", source)

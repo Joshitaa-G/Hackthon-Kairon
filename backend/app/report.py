@@ -3,15 +3,18 @@
 
   1-3. retrieval.search(): stories of this decision type only, ranked by similarity, top-k
   4.   count regret yes/mixed/no in Python over those top-k
-  5.   one LLM call summarizes reasons/advice and picks quote IDs (cached on the top-k ID set)
+  5.   one LLM call per decision type summarizes reasons/advice and picks quote IDs,
+       saved to <db>.summaries.json so the demo makes ~1 call per type in total
   6.   quotes are pulled from the DB by ID; IDs the LLM made up are dropped
 
 The LLM never writes a number or a quote.
 """
 
+import hashlib
 import json
 import re
 from collections import Counter
+from pathlib import Path
 
 from .decision_types import DECISION_TYPES
 from .llm import llm_json
@@ -21,6 +24,7 @@ from .retrieval import Store, load_store, search
 MIN_FOR_PERCENT = 5
 MAX_QUOTES = 5
 MIN_QUOTES = 3
+SUMMARY_MAX = 60  # stories sent to the summary call (~4K tokens)
 SUMMARY_FIELDS = ["id", "choice", "outcome", "regret", "main_reason", "advice"]
 
 SYSTEM = (
@@ -29,7 +33,9 @@ SYSTEM = (
     "and one sentence on what people who didn't regret it did differently. Use only these stories. "
     "Return quote_ids (3-5) of the most representative stories. "
     "Do not write numbers or percentages. Do not quote text yourself.\n"
-    'JSON keys: top_reasons, top_advice, no_regret_pattern, quote_ids.'
+    "Each list item is one plain sentence (max 20 words). Return exactly this shape:\n"
+    '{"top_reasons": ["...", "...", "..."], "top_advice": ["...", "...", "..."], '
+    '"no_regret_pattern": "...", "quote_ids": ["id1", "id2", "id3"]}'
 )
 
 NATIONAL = {
@@ -51,7 +57,7 @@ def build_report(decision_type: str, q: str = "", filters: dict = None, store: S
 
     counts = Counter(s["regret"] for s in stories)
     n = len(stories)
-    summary = _summary(store, decision_type, stories) if n else SummaryOut().model_dump()
+    summary = _summary(store, decision_type) if n else SummaryOut().model_dump()
 
     kind = "mock stories (test data)" if store.is_mock else "real stories"
     return Report(
@@ -70,10 +76,18 @@ def build_report(decision_type: str, q: str = "", filters: dict = None, store: S
     )
 
 
-def _summary(store, decision_type, stories) -> dict:
-    key = (str(store.db_path), decision_type, tuple(sorted(s["id"] for s in stories)))
-    if key in _summary_cache:
-        return _summary_cache[key]
+def _summary(store, decision_type) -> dict:
+    """Reasons/advice for the whole decision type: one LLM call per type, saved to disk.
+
+    Counts and quotes stay per-question (top-k); the summary describes the decision overall,
+    so judges refreshing or a server restart never trigger new LLM calls.
+    """
+    stories = [s for s in store.stories if s["decision_type"] == decision_type][:SUMMARY_MAX]
+    ids = sorted(s["id"] for s in stories)
+    key = f"{decision_type}|{hashlib.sha1('|'.join(ids).encode()).hexdigest()[:12]}"  # new data = new key
+    cache = _disk_cache(store)
+    if key in cache:
+        return cache[key]
     payload = json.dumps([{f: s[f] for f in SUMMARY_FIELDS} for s in stories], ensure_ascii=False)
     try:
         out = llm_json(SYSTEM, f"Stories about {DECISION_TYPES[decision_type]['about']}:\n{payload}",
@@ -81,8 +95,21 @@ def _summary(store, decision_type, stories) -> dict:
     except Exception as e:  # noqa: BLE001  keep the demo alive if the LLM is down
         print(f"summary LLM failed, using code fallback: {e}")
         return _fallback_summary(stories)  # not cached, so the next request retries the LLM
-    _summary_cache[key] = out
+    cache[key] = out
+    _cache_file(store).write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
     return out
+
+
+def _cache_file(store) -> Path:
+    return store.db_path.with_suffix(".summaries.json")
+
+
+def _disk_cache(store) -> dict:
+    path = str(store.db_path)
+    if path not in _summary_cache:
+        f = _cache_file(store)
+        _summary_cache[path] = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    return _summary_cache[path]
 
 
 def _fallback_summary(stories) -> dict:
@@ -112,5 +139,8 @@ def _no_numbers(items) -> list[str]:
     return [x.strip() for x in items if x and x.strip() and not _NUMBERS.search(x)]
 
 
-def clear_cache():
+def clear_cache(delete_files=False):
+    if delete_files:
+        for path in _summary_cache:
+            Path(path).with_suffix(".summaries.json").unlink(missing_ok=True)
     _summary_cache.clear()

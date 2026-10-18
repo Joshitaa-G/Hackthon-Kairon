@@ -32,7 +32,11 @@ def classify(text: str) -> MatchResponse:
         t = hits[0]
         return MatchResponse(type=t, confidence=0.95, restated=DECISION_TYPES[t]["label"])
 
-    out = llm_json(SYSTEM, text, MatchOut, role="match", max_tokens=100)
+    try:
+        out = llm_json(SYSTEM, text, MatchOut, role="match", max_tokens=100)
+    except Exception as e:  # noqa: BLE001  LLM down or out of quota: let the user pick instead
+        print(f"match LLM failed, offering closest types: {e}")
+        return MatchResponse(type="other", confidence=0.0, restated="", alternatives=nearest_types(text, n=2))
     t = out["type"]
     if t == "safety":
         return MatchResponse(type="safety", confidence=1.0, restated="", safety=safety.response())
